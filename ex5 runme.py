@@ -1,3 +1,8 @@
+from readMnist import genMnistDigits, readMnist
+
 if __name__ == '__main__':
-    print('hello world')
+
+    data, labels = readMnist()
+    currData, currLabels = genMnistDigits([0, 1], 500, data, labels)
+
     pass
