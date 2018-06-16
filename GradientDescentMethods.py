@@ -11,14 +11,14 @@ def sample_loss(label, prediction):
 
 def sample_sub_grad(datum, label, prediction):
     dimension = len(datum)
-    sub_grad = [0] * dimension
+    sub_grad = np.zeros(dimension)
     for i in range(dimension):
-        sub_grad[i] = - label * datum[i] if label * prediction < 1 else 0
+        sub_grad[i] = 0 if label * prediction >= 1 else - label * datum[i]
     return sub_grad
 
 
 def sample_loss_and_sub_grad(w, datum, label):
-    prediction = datum * w
+    prediction = np.inner(datum, w)
     sub_grad = sample_sub_grad(datum, label, prediction)
     loss = sample_loss(label, prediction)
     return loss, sub_grad
@@ -29,7 +29,7 @@ def get_average_sub_grad(w, data, label):
     sample_count = data.shape[0]
     dimension = data.shape[1]
 
-    average_sub_grad = [0] * dimension
+    average_sub_grad = np.zeros(dimension)
 
     for i in range(sample_count):
         loss, sub_grad = sample_loss_and_sub_grad(w, data[i], label[i])
@@ -47,13 +47,14 @@ def split_data_randomly(total_size, selection_size):
     selected_indexes = []
 
     for i in range(selection_size):
-        # we need to remove one of the indexes in test_indexes.
-        # but note that test_indexes may contain gaps because we have removed some of its original values.
-        # So for instance, if test_indexes now contains [0, 55, 2345, 20000]
+        # we need to remove one of the indexes in other_indexes.
+        # but note that other_indexes may contain gaps because we have removed some of its original values.
+        # So for instance, if other_indexes now contains [0, 55, 2345, 20000]
         # and we need to remove one more we select a position between 0 and 3 - let's say 1
-        # and then we remove 55 which is in place 1 (and move it to train_indexes
+        # and then we remove 55 which is in place 1 (and move it to selected_indexes)
 
-        select_position_of_index_to_move = randint(0, len(other_indexes))
+        select_position_of_index_to_move = np.random.randint(0, len(other_indexes))
+
         index_to_move = other_indexes[select_position_of_index_to_move]
         other_indexes.remove(index_to_move)
         selected_indexes.append(index_to_move)
@@ -95,8 +96,9 @@ def SGD(data, label, iters, eta, batch):
         descent algorithm over i iterations
     '''
 
-    w = [0] * data.shape[1]
-    all_weights = [[]] * iters
+    dimension = data.shape[1]
+    w = np.zeros(dimension)
+    all_weights = np.ndarray([iters, dimension])
 
     for iter_ in range(iters):
         batch_data, batch_label = select_batch(data, label, batch)
