@@ -47,8 +47,6 @@ def split_data_randomly(total_size, selection_size):
         # and we need to remove one more we select a position between 0 and 3 - let's say 1
         # and then we remove 55 which is in place 1 (and move it to selected_indexes)
 
-        if len(other_indexes) == 0:
-            print()
         select_position_of_index_to_move = np.random.randint(0, len(other_indexes))
 
         index_to_move = other_indexes[select_position_of_index_to_move]

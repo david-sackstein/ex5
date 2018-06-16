@@ -1,15 +1,9 @@
 import numpy as np
-from matplotlib.pyplot import plot, legend, ylabel, xlabel, title, savefig, clf
+from matplotlib.pyplot import plot, legend, ylabel, xlabel, title, savefig, clf, imsave
 
 from GradientDescentMethods import GD, split_data_randomly, SGD, testError
 from readMnist import readMnist, showImage
 
-def show_images(raw_data, raw_labels):
-    i = 0
-    for image in raw_data:
-        showImage(image)
-        print(raw_labels[i])
-        i += 1
 
 def prepare_data(raw_data, raw_labels):
     raw_shape = raw_data.shape
@@ -24,7 +18,6 @@ def prepare_data(raw_data, raw_labels):
 
 
 def split_data(data, labels):
-
     total_size = data.shape[0]
     train_size = int(0.9 * total_size)
 
@@ -59,14 +52,26 @@ def plot_losses(name, hypotheses, train_data, train_labels, test_data, test_labe
     clf()
 
 
+def save_hypothesis_image(hypotheses, name):
+    iters_to_print = {5, 15, 50, 100}
+    for iter_ in iters_to_print:
+        square = np.delete(hypotheses[iter_], -1).astype(np.uint8).reshape([28, 28])
+        name = '{}.iter.{}.png'.format(name, iter_)
+        imsave(name, square)
+
+
+def plot_hypotheses(name, hypotheses, train_data, train_labels, test_data, test_labels):
+    plot_losses(name, hypotheses, train_data, train_labels, test_data, test_labels)
+    save_hypothesis_image(hypotheses, name)
+
 if __name__ == '__main__':
 
-    images_of_each_type = 500
+    images_of_each_type = 100
     image_types = [0, 1]
 
     raw_data, raw_labels = readMnist(image_types, images_of_each_type)
 
-    # show_images(raw_data, raw_labels)
+    show_images(raw_data, raw_labels)
     data, labels = prepare_data(raw_data, raw_labels)
 
     train_data, train_labels, test_data, test_labels = split_data(data, labels)
@@ -75,12 +80,12 @@ if __name__ == '__main__':
     iteration_count = 150
 
     gd_hypotheses = GD(train_data, train_labels, iteration_count, eta)
-    plot_losses('GD', gd_hypotheses, train_data, train_labels, test_data, test_labels)
+    plot_hypotheses('GD', gd_hypotheses, train_data, train_labels, test_data, test_labels)
 
-    batches = [5, 50, 150]
+    # batches = [5, 50, 150]
+    batches = [5, 10]
 
     for batch in batches:
         sgd_hypotheses = SGD(train_data, train_labels, iteration_count, eta, batch)
-        name = 'sgd.{}'.format(batch)
-        plot_losses(name, sgd_hypotheses, train_data, train_labels, test_data, test_labels)
-
+        name = 'SGD.batch.{}'.format(batch)
+        plot_hypotheses(name, sgd_hypotheses, train_data, train_labels, test_data, test_labels)
