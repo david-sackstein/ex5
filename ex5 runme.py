@@ -73,10 +73,13 @@ def plot_hypotheses(name, hypotheses, train_data, train_labels, test_data, test_
     plot_losses(name, hypotheses, train_data, train_labels, test_data, test_labels)
     save_hypothesis_image(name, hypotheses)
 
-if __name__ == '__main__':
 
-    images_of_each_type = 100
+if __name__ == '__main__':
+    images_of_each_type = 500
+    eta = 1
+    iteration_count = 150
     image_types = [0, 1]
+    batches = [5, 50, 150]
 
     raw_data, raw_labels = readMnist(image_types, images_of_each_type)
 
@@ -84,14 +87,8 @@ if __name__ == '__main__':
 
     train_data, train_labels, test_data, test_labels = split_data(data, labels)
 
-    eta = 1
-    iteration_count = 150
-
     gd_hypotheses = GD(train_data, train_labels, iteration_count, eta)
     plot_hypotheses('GD', gd_hypotheses, train_data, train_labels, test_data, test_labels)
-
-    # batches = [5, 50, 150]
-    batches = [5, 10]
 
     for batch in batches:
         sgd_hypotheses = SGD(train_data, train_labels, iteration_count, eta, batch)
