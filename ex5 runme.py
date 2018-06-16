@@ -1,9 +1,17 @@
+import os
+import shutil
+
 import numpy as np
 from matplotlib.pyplot import plot, legend, ylabel, xlabel, title, savefig, clf, imsave
-
 from GradientDescentMethods import GD, split_data_randomly, SGD, testError
 from readMnist import readMnist, showImage
 
+plot_dir = 'output/plots'
+image_dir = 'output/images'
+
+shutil.rmtree('output')
+os.makedirs(plot_dir, exist_ok=True)
+os.makedirs(image_dir, exist_ok=True)
 
 def prepare_data(raw_data, raw_labels):
     raw_shape = raw_data.shape
@@ -48,21 +56,22 @@ def plot_losses(name, hypotheses, train_data, train_labels, test_data, test_labe
     xlabel('[iteration]')
 
     title('Train Error and Test Error of {} as Functions at each Iteration'.format(name))
-    savefig('Plot.{}.png'.format(name))
+    file_name = '{}/Plot.{}.png'.format(plot_dir, name)
+    savefig(file_name)
     clf()
 
 
-def save_hypothesis_image(hypotheses, name):
+def save_hypothesis_image(name, hypotheses):
     iters_to_print = {5, 15, 50, 100}
     for iter_ in iters_to_print:
         square = np.delete(hypotheses[iter_], -1).astype(np.uint8).reshape([28, 28])
-        name = '{}.iter.{}.png'.format(name, iter_)
-        imsave(name, square)
+        file_name = '{}/{}.iter.{}.png'.format(image_dir, name, iter_)
+        imsave(file_name, square)
 
 
 def plot_hypotheses(name, hypotheses, train_data, train_labels, test_data, test_labels):
     plot_losses(name, hypotheses, train_data, train_labels, test_data, test_labels)
-    save_hypothesis_image(hypotheses, name)
+    save_hypothesis_image(name, hypotheses)
 
 if __name__ == '__main__':
 
@@ -71,7 +80,6 @@ if __name__ == '__main__':
 
     raw_data, raw_labels = readMnist(image_types, images_of_each_type)
 
-    show_images(raw_data, raw_labels)
     data, labels = prepare_data(raw_data, raw_labels)
 
     train_data, train_labels, test_data, test_labels = split_data(data, labels)
