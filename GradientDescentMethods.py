@@ -1,12 +1,12 @@
-from random import randint
-
-import scipy
-
 import numpy as np
 
 
-def sample_loss(label, prediction):
+def hinge_sample_loss(label, prediction):
     return max(0, 1 - prediction * label)
+
+
+def zero_one_sample_loss(label, prediction):
+    return 0 if prediction * label > 0 else 1
 
 
 def sample_sub_grad(datum, label, prediction):
@@ -17,13 +17,6 @@ def sample_sub_grad(datum, label, prediction):
     return sub_grad
 
 
-def sample_loss_and_sub_grad(w, datum, label):
-    prediction = np.inner(datum, w)
-    sub_grad = sample_sub_grad(datum, label, prediction)
-    loss = sample_loss(label, prediction)
-    return loss, sub_grad
-
-
 def get_average_sub_grad(w, data, label):
 
     sample_count = data.shape[0]
@@ -32,7 +25,8 @@ def get_average_sub_grad(w, data, label):
     average_sub_grad = np.zeros(dimension)
 
     for i in range(sample_count):
-        loss, sub_grad = sample_loss_and_sub_grad(w, data[i], label[i])
+        prediction = np.inner(data[i], w)
+        sub_grad = sample_sub_grad(data[i], label[i], prediction)
         average_sub_grad += sub_grad
 
     return average_sub_grad / sample_count
@@ -53,6 +47,8 @@ def split_data_randomly(total_size, selection_size):
         # and we need to remove one more we select a position between 0 and 3 - let's say 1
         # and then we remove 55 which is in place 1 (and move it to selected_indexes)
 
+        if len(other_indexes) == 0:
+            print()
         select_position_of_index_to_move = np.random.randint(0, len(other_indexes))
 
         index_to_move = other_indexes[select_position_of_index_to_move]
@@ -70,7 +66,7 @@ def select_batch(data, label, batch):
     selected_indexes, _ = split_data_randomly(data.shape[0], batch)
     batch_data = [data[i] for i in selected_indexes]
     batch_label = [label[i] for i in selected_indexes]
-    return batch_data, batch_label
+    return np.asarray(batch_data), np.asarray(batch_label)
 
 def GD(data, label, iters, eta):
     '''
@@ -119,18 +115,19 @@ def testError(w, testData, testLabels):
         (Make sure to take the sign of the inner product as the predicted label).
     '''
 
-    hypothesis_count = w.shape[1]
+    hypothesis_count = w.shape[0]
     sample_count = testData.shape[0]
 
-    errors = [0] * hypothesis_count
+    errors = np.zeros(hypothesis_count)
+
     for i in range(hypothesis_count):
         hypothesis_weights = w[i]
         hypothesis_loss = 0
         for j in range(sample_count):
             sample = testData[j]
             label = testLabels[j]
-            prediction = hypothesis_weights * sample
-            hypothesis_loss += 0 if prediction * label > 0 else 1
+            prediction = np.inner(hypothesis_weights, sample)
+            hypothesis_loss += zero_one_sample_loss(label, prediction)
         errors[i] = hypothesis_loss
 
     return errors

@@ -1,5 +1,7 @@
 import numpy as np
-from GradientDescentMethods import GD, split_data_randomly
+from matplotlib.pyplot import plot, legend, ylabel, xlabel, title, savefig, clf
+
+from GradientDescentMethods import GD, split_data_randomly, SGD, testError
 from readMnist import readMnist, showImage
 
 def show_images(raw_data, raw_labels):
@@ -36,9 +38,30 @@ def split_data(data, labels):
     return np.asarray(train_data), np.asarray(train_labels), \
            np.asarray(test_data), np.asarray(test_labels)
 
+
+def plot_losses(name, hypotheses, train_data, train_labels, test_data, test_labels):
+    losses_train_data = testError(hypotheses, train_data, train_labels)
+    losses_test_data = testError(hypotheses, test_data, test_labels)
+
+    hypothesis_count = hypotheses.shape[0]
+    hypothesis_indexes = range(hypothesis_count)
+
+    losses_train_data_line, = plot(hypothesis_indexes, losses_train_data, linestyle='--', label='Train data loss')
+    losses_test_data_line, = plot(hypothesis_indexes, losses_test_data, linestyle='--', label='Test data loss')
+
+    legend(handles=[losses_train_data_line, losses_test_data_line])
+
+    ylabel('Loss')
+    xlabel('[iteration]')
+
+    title('Train Error and Test Error of {} as Functions at each Iteration'.format(name))
+    savefig('Plot.{}.png'.format(name))
+    clf()
+
+
 if __name__ == '__main__':
 
-    images_of_each_type = 50
+    images_of_each_type = 500
     image_types = [0, 1]
 
     raw_data, raw_labels = readMnist(image_types, images_of_each_type)
@@ -48,6 +71,16 @@ if __name__ == '__main__':
 
     train_data, train_labels, test_data, test_labels = split_data(data, labels)
 
-    result = GD(train_data, train_labels, 10, 1)
+    eta = 1
+    iteration_count = 150
 
+    gd_hypotheses = GD(train_data, train_labels, iteration_count, eta)
+    plot_losses('GD', gd_hypotheses, train_data, train_labels, test_data, test_labels)
+
+    batches = [5, 50, 150]
+
+    for batch in batches:
+        sgd_hypotheses = SGD(train_data, train_labels, iteration_count, eta, batch)
+        name = 'sgd.{}'.format(batch)
+        plot_losses(name, sgd_hypotheses, train_data, train_labels, test_data, test_labels)
 
